@@ -2,6 +2,8 @@
 
 module EsIndex
   class IndexManager
+    extend Forwardable
+
     def initialize(config)
       @config = config
     end
@@ -96,7 +98,7 @@ module EsIndex
     private
 
     attr_reader :config
-    delegate :client, :logger, to: :config
+    def_delegators :config, :client, :logger
 
     def indexer
       @indexer ||= Indexer.new(config)

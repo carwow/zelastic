@@ -2,6 +2,8 @@
 
 module EsIndex
   class Indexer
+    extend Forwardable
+
     def initialize(config)
       @config = config
     end
@@ -71,7 +73,7 @@ module EsIndex
     private
 
     attr_reader :config
-    delegate :logger, to: :config
+    def_delegators :config, :logger
 
     def current_version
       config.data_source.connection.select_one('SELECT txid_current()').fetch('txid_current')
