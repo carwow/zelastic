@@ -7,11 +7,18 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    activemodel (5.1.4)
+      activesupport (= 5.1.4)
+    activerecord (5.1.4)
+      activemodel (= 5.1.4)
+      activesupport (= 5.1.4)
+      arel (~> 8.0)
     activesupport (5.1.4)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
+    arel (8.0.0)
     ast (2.3.0)
     coderay (1.1.2)
     concurrent-ruby (1.0.5)
@@ -59,6 +66,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activerecord
   bundler
   es_index!
   pry

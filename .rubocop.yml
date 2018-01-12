@@ -3,7 +3,8 @@ AllCops:
 
 # Configuration parameters: CountComments, ExcludedMethods.
 Metrics/BlockLength:
-  Max: 26
+  Exclude:
+    - '*.gemspec'
 
 # Configuration parameters: CountComments.
 Metrics/MethodLength:
