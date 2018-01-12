@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EsIndex
   class Config
     attr_reader :client, :data_source

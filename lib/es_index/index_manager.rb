@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EsIndex
   class IndexManager
     def initialize(config)
@@ -7,12 +9,12 @@ module EsIndex
     def create_index(unique_name)
       full_name = [config.read_alias, unique_name].join('_')
 
-      config.client.indices.create(
+      client.indices.create(
         index: full_name,
         body: config.index_definition
       )
 
-      config.client.indices.put_alias(index: full_name, name: config.write_alias)
+      client.indices.put_alias(index: full_name, name: config.write_alias)
     end
 
     def populate_index(unique_name = nil, batch_size: 3000)
@@ -27,32 +29,33 @@ module EsIndex
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
     def switch_read_index(new_name)
       new_index = [config.read_alias, new_name].join('_')
 
       old_index =
-        if config.client.indices.exists_alias?(name: config.read_alias)
-          config.client.indices.get_alias(name: config.read_alias).keys.first
+        if client.indices.exists_alias?(name: config.read_alias)
+          client.indices.get_alias(name: config.read_alias).keys.first
         end
 
       remove_action =
         ({ remove: { index: old_index, alias: config.read_alias } } if old_index)
 
-      config.client.indices.update_aliases(body: {
-                                             actions: [
-                                               remove_action,
-                                               { add: { index: new_index, alias: config.read_alias } }
-                                             ].compact
-                                           })
+      client.indices.update_aliases(body: {
+                                      actions: [
+                                        remove_action,
+                                        { add: { index: new_index, alias: config.read_alias } }
+                                      ].compact
+                                    })
     end
 
     def stop_dual_writes
       logger.info('Stopping dual writes - making index read and write aliases the same')
-      current_index = config.client.indices.get_alias(name: config.read_alias).keys.first
+      current_index = client.indices.get_alias(name: config.read_alias).keys.first
 
       logger.info("Currently used index is #{current_index}")
 
-      other_write_indices = config.client.indices.get_alias(name: config.write_alias).keys
+      other_write_indices = client.indices.get_alias(name: config.write_alias).keys
                                   .reject { |name| name == current_index }
 
       if other_write_indices.none?
@@ -65,34 +68,35 @@ module EsIndex
       actions = other_write_indices.map do |index|
         { remove: { index: index, alias: config.write_alias } }
       end
-      config.client.indices.update_aliases(body: { actions: actions })
+      client.indices.update_aliases(body: { actions: actions })
     end
 
     def cleanup_old_indices
       logger.info('Cleaning up old indices in Elasticsearch')
-      current_index = config.client.indices.get_alias(name: config.read_alias).keys.first
+      current_index = client.indices.get_alias(name: config.read_alias).keys.first
 
       logger.info("Currently used index is #{current_index}")
 
-      indices_to_delete = config.client
-                                .cat
-                                .indices(format: :json)
-                                .map { |index| index['index'] }
-                                .select { |name| name.start_with?(config.read_alias) }
-                                .reject { |name| name == current_index }
+      indices_to_delete = client
+                          .cat
+                          .indices(format: :json)
+                          .map { |index| index['index'] }
+                          .select { |name| name.start_with?(config.read_alias) }
+                          .reject { |name| name == current_index }
 
       if indices_to_delete.none?
         logger.info('Nothing to do: no old indices')
         return
       end
       logger.info("Deleting #{indices_to_delete.count} old indices: #{indices_to_delete.join(', ')}")
-      config.client.indices.delete(index: indices_to_delete)
+      client.indices.delete(index: indices_to_delete)
     end
+    # rubocop:enable Metrics/AbcSize
 
     private
 
     attr_reader :config
-    delegate :logger, to: :config
+    delegate :client, :logger, to: :config
 
     def indexer
       @indexer ||= Indexer.new(config)

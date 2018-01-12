@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EsIndex
   class Indexer
     def initialize(config)
@@ -5,48 +7,27 @@ module EsIndex
     end
 
     def index_batch(batch, index_name: nil)
-      index_name ||= config.write_alias
+      indices = Array(index_name || write_indices)
       logger.info("ES: Indexing #{config.type} record")
 
       version = current_version
-      commands = batch.map do |record|
-        {
-          index: {
-            _index: index_name,
-            _type: config.type,
-            _id: record.id,
-            _version: version,
-            _version_type: :external,
-            data: config.index_data(record)
-          }
-        }
-      end
-
-      result = config.client.bulk(body: commands)
-      return result unless result['errors']
-      result['items'].map { |item| item['error'] }.compact
+      execute_bulk(
+        indices.flat_map do |index|
+          batch.map do |record|
+            index_command(index: index, version: version, record: record)
+          end
+        end
+      )
     end
 
     def index_record(record)
       version = current_version
-      indices = config.client.indices.get_alias(name: config.write_alias).keys
 
-      commands = indices.map do |index|
-        {
-          index: {
-            _index: index,
-            _type: config.type,
-            _version: version,
-            _version_type: :external,
-            _id: record.id,
-            data: config.index_data(record)
-          }
-        }
-      end
-
-      result = config.client.bulk(body: commands)
-      return [] unless result['errors']
-      result['items'].map { |item| item['error'] }.compact
+      execute_bulk(
+        write_indices.map do |index|
+          index_command(index: index, version: version, record: record)
+        end
+      )
     end
 
     def delete_by_id(id)
@@ -65,24 +46,20 @@ module EsIndex
       logger.info('ES: Deleting batch records')
 
       indices = config.client.indices.get_alias(name: config.write_alias).keys
-      commands = []
 
-      indices.each do |index|
-        commands += ids.map do |id|
-          {
-            delete: {
-              _index: index,
-              _type: config.type,
-              _id: id
+      execute_bulk(
+        indices.flat_map do |index|
+          ids.map do |id|
+            {
+              delete: {
+                _index: index,
+                _type: config.type,
+                _id: id
+              }
             }
-          }
+          end
         end
-      end
-
-      result = config.client.bulk(body: commands)
-
-      return [] unless result['errors']
-      result['items'].map { |item| item['error'] }.compact
+      )
     end
 
     def delete_by_query(query)
@@ -98,6 +75,29 @@ module EsIndex
 
     def current_version
       config.data_source.connection.select_one('SELECT txid_current()').fetch('txid_current')
+    end
+
+    def write_indices
+      config.client.indices.get_alias(name: config.write_alias).keys
+    end
+
+    def index_command(index:, version:, record:)
+      {
+        index: {
+          _index: index,
+          _type: config.type,
+          _id: record.id,
+          _version: version,
+          _version_type: :external,
+          data: config.index_data(record)
+        }
+      }
+    end
+
+    def execute_bulk(commands)
+      result = config.client.bulk(body: commands)
+      return result unless result['errors']
+      result['items'].map { |item| item['error'] }.compact
     end
   end
 end
