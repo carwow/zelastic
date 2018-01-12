@@ -62,15 +62,15 @@ jobs:
 
 workflows:
   version: 2
-  build-and-deploy:
+  build-and-publish:
     jobs:
       - bundle
       - rubocop:
           requires: [bundle]
       - tests:
           requires: [bundle]
-      # - publish:
-      #     requires: [rubocop, tests]
-      #     filters:
-      #       branches:
-      #         only: [master]
+      - publish:
+          requires: [rubocop, tests]
+          filters:
+            branches:
+              only: [master]
