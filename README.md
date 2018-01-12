@@ -27,13 +27,10 @@ end
 
 MyModelIndex = EsIndex.new(
   client: Elasticsearch::Client.new(...),
-  index_definition: {
+  mapping: {
     ...
   },
-  data_source: MyModel.some_scope,
-  read_alias: 'my_models', # this is the default - the table name
-  write_alias: 'my_models_write', # this is the default - <read_alias>_write
-  type: 'my_model' # default - singularized table name
+  data_source: MyModel.some_scope
 ) do |my_model|
   # this block transforms an instance of MyModel into the hash which goes into Elasticsearch
   {
@@ -43,6 +40,13 @@ MyModelIndex = EsIndex.new(
   }
 end
 ```
+
+You can also override some defaults, if you wish:
+- `index_settings`: by default there aren't any, but you can provide, for example, custom analysers
+  here
+- `read_alias`: by default this is the table name of the `data_source`
+- `write_alias`: by default this is the `read_alias`, with `_write` appended
+- `type`: by default this is `read_alias.singularize`
 
 ### Normal usage
 
@@ -78,12 +82,12 @@ The `write_alias` is usually the same as the read alias, except during re-indexi
 points at both the old and new indices, so both receive writes. The following steps run a
 full reindex:
 
-1. `new_index_name = SecureRandom.hex(3)`
+1. `new_name = SecureRandom.hex(3)`
 2. `index_manager = EsIndex::IndexManager.new(MyModelIndex)`
-2. `index_manager.create_index(new_index_name)`
-3. `index_manager.populate_index(new_index_name, batch_size: 3000)`
+2. `index_manager.create_index(new_name)`
+3. `index_manager.populate_index(new_name, batch_size: 3000)`
 4. Check that the new index is looking alrightish
-5. `index_manager.switch_read_index(new_index_name)`
+5. `index_manager.switch_read_index(new_name)`
 6. Probably do some more checks, then
 7. `index_manager.stop_dual_writes`
 8. `index_manager.cleanup_old_indices`
