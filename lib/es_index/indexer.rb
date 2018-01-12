@@ -62,7 +62,7 @@ module EsIndex
     end
 
     def delete_by_ids(ids)
-      Rails.logger.info('ES: Deleting batch records')
+      logger.info('ES: Deleting batch records')
 
       indices = config.client.indices.get_alias(name: config.write_alias).keys
       commands = []
@@ -86,7 +86,7 @@ module EsIndex
     end
 
     def delete_by_query(query)
-      Rails.logger.info('ES: Deleting batch records')
+      logger.info('ES: Deleting batch records')
 
       config.client.delete_by_query(index: config.write_alias, body: { query: query })
     end
@@ -94,6 +94,7 @@ module EsIndex
     private
 
     attr_reader :config
+    delegate :logger, to: :config
 
     def current_version
       config.data_source.connection.select_one('SELECT txid_current()').fetch('txid_current')

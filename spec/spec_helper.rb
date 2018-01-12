@@ -1,8 +1,8 @@
-require "bundler/setup"
-require "es_index"
+require 'bundler/setup'
+require 'es_index'
 
 RSpec.configure do |config|
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   config.disable_monkey_patching!
 
