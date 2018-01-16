@@ -8,22 +8,13 @@ require 'es_index/version'
 Gem::Specification.new do |spec|
   spec.name          = 'es_index'
   spec.version       = EsIndex::VERSION
-  spec.authors       = ['Isaac Seymour']
-  spec.email         = ['i.seymour@oxon.org']
+  spec.authors       = ['carwow Developers']
+  spec.email         = ['developers@carwow.co.uk']
 
   spec.summary       = 'Zero-downtime (re-)indexing of ActiveRecord models into Elasticsearch.'
   spec.description   = 'An index manager for Elasticsearch and ActiveRecord'
   spec.homepage      = 'https://github.com/carwow/es_index'
   spec.license       = 'MIT'
-
-  # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
-  # to allow pushing to a single host or delete this section to allow pushing to any host.
-  if spec.respond_to?(:metadata)
-    spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com'"
-  else
-    raise 'RubyGems 2.0 or newer is required to protect against ' \
-      'public gem pushes.'
-  end
 
   spec.files = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
