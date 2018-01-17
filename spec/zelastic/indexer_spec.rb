@@ -2,5 +2,5 @@
 
 require 'spec_helper'
 
-RSpec.describe EsIndex::IndexManager do
+RSpec.describe Zelastic::Indexer do
 end

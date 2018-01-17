@@ -5,7 +5,7 @@
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'es_index'
+gem 'zelastic'
 ```
 
 And then execute:
@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install es_index
+    $ gem install zelastic
 
 ## Usage
 ### Setup
@@ -25,7 +25,7 @@ class MyModel < ApplicationRecord
   ...
 end
 
-MyModelIndex = EsIndex.new(
+MyModelIndex = Zelastic.new(
   client: Elasticsearch::Client.new(...),
   mapping: {
     ...
@@ -53,19 +53,19 @@ You can also override some defaults, if you wish:
 You'll need to make sure the following gets run whenever an instance of MyModel is updated:
 
 ```ruby
-indexer = EsIndex::Indexer.new(MyModelIndex)
+indexer = Zelastic::Indexer.new(MyModelIndex)
 indexer.index_record(my_model)
 ```
 
 And when an instance of MyModel gets deleted:
 ```ruby
-indexer = EsIndex::Indexer.new(MyModelIndex)
+indexer = Zelastic::Indexer.new(MyModelIndex)
 indexer.delete_by_id(my_model.id)
 ```
 
 There's also some bulk-change methods which may be useful:
 ```ruby
-indexer = EsIndex::Indexer.new(MyModelIndex)
+indexer = Zelastic::Indexer.new(MyModelIndex)
 indexer.index_batch(MyModel.where(id: [...]))
 indexer.delete_by_ids([1, 2, 3])
 indexer.delete_by_query(elasticsearch_query)
@@ -83,7 +83,7 @@ points at both the old and new indices, so both receive writes. The following st
 full reindex:
 
 1. `new_name = SecureRandom.hex(3)`
-2. `index_manager = EsIndex::IndexManager.new(MyModelIndex)`
+2. `index_manager = Zelastic::IndexManager.new(MyModelIndex)`
 2. `index_manager.create_index(new_name)`
 3. `index_manager.populate_index(new_name, batch_size: 3000)`
 4. Check that the new index is looking alrightish
@@ -100,7 +100,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/carwow/es_index.
+Bug reports and pull requests are welcome on GitHub at https://github.com/carwow/zelastic.
 
 ## License
 

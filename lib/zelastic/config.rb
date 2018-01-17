@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module EsIndex
+module Zelastic
   class Config
     attr_reader :client, :data_source
 

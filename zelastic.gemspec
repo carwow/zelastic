@@ -3,17 +3,17 @@
 
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'es_index/version'
+require 'zelastic/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'es_index'
-  spec.version       = EsIndex::VERSION
+  spec.name          = 'zelastic'
+  spec.version       = Zelastic::VERSION
   spec.authors       = ['carwow Developers']
   spec.email         = ['developers@carwow.co.uk']
 
   spec.summary       = 'Zero-downtime (re-)indexing of ActiveRecord models into Elasticsearch.'
   spec.description   = 'An index manager for Elasticsearch and ActiveRecord'
-  spec.homepage      = 'https://github.com/carwow/es_index'
+  spec.homepage      = 'https://github.com/carwow/zelastic'
   spec.license       = 'MIT'
 
   spec.files = `git ls-files -z`.split("\x0").reject do |f|

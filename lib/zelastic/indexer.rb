@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module EsIndex
+module Zelastic
   class Indexer
     extend Forwardable
 
