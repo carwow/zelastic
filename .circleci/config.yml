@@ -7,7 +7,7 @@ elasticsearch_container: &elasticsearch_container
 version: 2
 jobs:
   bundle:
-    working_directory: ~/es_index
+    working_directory: ~/zelastic
     docker:
       - *ruby
     steps:
@@ -21,13 +21,13 @@ jobs:
           bundle check || bundle install --jobs=4 --retry=3
       - save_cache:
           key: bundle-{{ checksum "Gemfile.lock" }}
-          paths: [~/es_index/vendor/bundle]
+          paths: [~/zelastic/vendor/bundle]
       - persist_to_workspace:
           root: '~'
-          paths: [es_index]
+          paths: [zelastic]
 
   rubocop:
-    working_directory: ~/es_index
+    working_directory: ~/zelastic
     docker:
       - *ruby
     steps:
@@ -36,7 +36,7 @@ jobs:
       - run: bundle exec rubocop
 
   tests:
-    working_directory: ~/es_index
+    working_directory: ~/zelastic
     docker:
       - *ruby
       - *elasticsearch_container
@@ -45,32 +45,12 @@ jobs:
           at: '~'
       - run: |
           bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
-  publish:
-    working_directory: ~/es_index
-    docker:
-      - *ruby
-    steps:
-      - attach_workspace:
-          at: '~'
-      - run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          chmod 0700 ~/.ssh/known_hosts
-          git config user.name 'CircleCI'
-          git config user.email 'developers@carwow.co.uk'
-          bundle exec rake release
-
 workflows:
   version: 2
-  build-and-publish:
+  build:
     jobs:
       - bundle
       - rubocop:
           requires: [bundle]
       - tests:
           requires: [bundle]
-      # - publish:
-      #     requires: [rubocop, tests]
-      #     filters:
-      #       branches:
-      #         only: [master]
