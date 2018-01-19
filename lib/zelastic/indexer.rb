@@ -2,6 +2,15 @@
 
 module Zelastic
   class Indexer
+    class IndexingError < StandardError
+      attr_reader :errors
+
+      def initialize(errors)
+        @errors = errors
+        super("Errors indexing: #{errors.join(', ')}")
+      end
+    end
+
     extend Forwardable
 
     def initialize(config)
@@ -99,7 +108,8 @@ module Zelastic
     def execute_bulk(commands)
       result = config.client.bulk(body: commands)
       return result unless result['errors']
-      result['items'].map { |item| item['error'] }.compact
+      errors = result['items'].map { |item| item['error'] }.compact
+      raise IndexingError, errors
     end
   end
 end
