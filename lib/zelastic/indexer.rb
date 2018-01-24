@@ -6,7 +6,9 @@ module Zelastic
       attr_reader :errors
 
       def initialize(result)
-        @errors = result['items'].map { |item| item['error'] }.compact
+        @errors = result['items'].map do |item|
+          item['error'] || item.fetch('index', {})['error']
+        end.compact
         super("Errors indexing: #{errors.join(', ')}")
       end
     end
@@ -32,7 +34,7 @@ module Zelastic
       version = current_version
 
       execute_bulk do |index_name|
-        index_command(index: index_name, version: version, record: record)
+        [index_command(index: index_name, version: version, record: record)]
       end
     end
 
