@@ -93,12 +93,12 @@ module Zelastic
     def execute_bulk(client: nil, index_name: nil)
       clients = Array(client || config.clients)
 
-      clients.map do |client|
-        indices = Array(index_name || write_indices(client))
+      clients.map do |current_client|
+        indices = Array(index_name || write_indices(current_client))
 
         commands = indices.flat_map { |index| yield(index) }
 
-        client.bulk(body: commands).tap do |result|
+        current_client.bulk(body: commands).tap do |result|
           raise IndexingError, result if result['errors']
         end
       end
