@@ -2,7 +2,7 @@
 
 module Zelastic
   class Config
-    attr_reader :client, :data_source
+    attr_reader :clients, :data_source
 
     def initialize(
       client:,
@@ -11,7 +11,7 @@ module Zelastic
       **overrides,
       &index_data
     )
-      @client = client
+      @clients = Array(client)
       @data_source = data_source
       @mapping = mapping
       @index_data = index_data

@@ -5,8 +5,8 @@ module Zelastic
     class IndexingError < StandardError
       attr_reader :errors
 
-      def initialize(errors)
-        @errors = errors
+      def initialize(result)
+        @errors = result['items'].map { |item| item['error'] }.compact
         super("Errors indexing: #{errors.join(', ')}")
       end
     end
@@ -18,65 +18,50 @@ module Zelastic
     end
 
     def index_batch(batch, index_name: nil)
-      indices = Array(index_name || write_indices)
       logger.info("ES: Indexing #{config.type} record")
 
       version = current_version
-      execute_bulk(
-        indices.flat_map do |index|
-          batch.map do |record|
-            index_command(index: index, version: version, record: record)
-          end
+      execute_bulk do |index_name|
+        batch.map do |record|
+          index_command(index: index_name, version: version, record: record)
         end
-      )
+      end
     end
 
     def index_record(record)
       version = current_version
 
-      execute_bulk(
-        write_indices.map do |index|
-          index_command(index: index, version: version, record: record)
-        end
-      )
+      execute_bulk do |index_name|
+        index_command(index: index_name, version: version, record: record)
+      end
     end
 
     def delete_by_id(id)
-      indices = client.indices.get_alias(name: config.write_alias).keys
-
-      indices.each do |index|
-        client.delete(
-          index: index,
-          type: config.type,
-          id: id
-        )
-      end
+      delete_by_ids([id])
     end
 
     def delete_by_ids(ids)
       logger.info('ES: Deleting batch records')
 
-      indices = config.client.indices.get_alias(name: config.write_alias).keys
-
-      execute_bulk(
-        indices.flat_map do |index|
-          ids.map do |id|
-            {
-              delete: {
-                _index: index,
-                _type: config.type,
-                _id: id
-              }
+      execute_bulk do |index_name|
+        ids.map do |id|
+          {
+            delete: {
+              _index: index_name,
+              _type: config.type,
+              _id: id
             }
-          end
+          }
         end
-      )
+      end
     end
 
     def delete_by_query(query)
       logger.info('ES: Deleting batch records')
 
-      config.client.delete_by_query(index: config.write_alias, body: { query: query })
+      config.clients.each do |client|
+        client.delete_by_query(index: config.write_alias, body: { query: query })
+      end
     end
 
     private
@@ -88,8 +73,8 @@ module Zelastic
       config.data_source.connection.select_one('SELECT txid_current()').fetch('txid_current')
     end
 
-    def write_indices
-      config.client.indices.get_alias(name: config.write_alias).keys
+    def write_indices(client)
+      client.indices.get_alias(name: config.write_alias).keys
     end
 
     def index_command(index:, version:, record:)
@@ -105,11 +90,13 @@ module Zelastic
       }
     end
 
-    def execute_bulk(commands)
-      result = config.client.bulk(body: commands)
-      return result unless result['errors']
-      errors = result['items'].map { |item| item['error'] }.compact
-      raise IndexingError, errors
+    def execute_bulk
+      config.clients.map do |client|
+        commands = write_indices(client).map { |index_name| yield(index) }
+        client.bulk(body: commands).tap do |result|
+          raise IndexingError, result if result['errors']
+        end
+      end
     end
   end
 end

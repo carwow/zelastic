@@ -4,8 +4,9 @@ module Zelastic
   class IndexManager
     extend Forwardable
 
-    def initialize(config)
+    def initialize(config, client: nil)
       @config = config
+      @client = client || config.clients.first
     end
 
     def create_index(unique_name)
@@ -97,8 +98,8 @@ module Zelastic
 
     private
 
-    attr_reader :config
-    def_delegators :config, :client, :logger
+    attr_reader :config, :client
+    def_delegators :config, :logger
 
     def indexer
       @indexer ||= Indexer.new(config)
