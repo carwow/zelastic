@@ -28,7 +28,7 @@ module Zelastic
                    end
 
       config.data_source.find_in_batches(batch_size: batch_size) do |batch|
-        indexer.index_batch(batch, index_name: index_name)
+        indexer.index_batch(batch, client: client, index_name: index_name)
       end
     end
 

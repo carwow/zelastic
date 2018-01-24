@@ -48,6 +48,9 @@ You can also override some defaults, if you wish:
 - `write_alias`: by default this is the `read_alias`, with `_write` appended
 - `type`: by default this is `read_alias.singularize`
 
+If you pass an array to as the `client` argument, all writes will be applied to every client in the
+array.
+
 ### Normal usage
 
 You'll need to make sure the following gets run whenever an instance of MyModel is updated:
@@ -83,7 +86,7 @@ points at both the old and new indices, so both receive writes. The following st
 full reindex:
 
 1. `new_name = SecureRandom.hex(3)`
-2. `index_manager = Zelastic::IndexManager.new(MyModelIndex)`
+2. `index_manager = Zelastic::IndexManager.new(MyModelIndex, client: Elasticsearch::Client.new(...))`
 2. `index_manager.create_index(new_name)`
 3. `index_manager.populate_index(new_name, batch_size: 3000)`
 4. Check that the new index is looking alrightish
@@ -91,6 +94,10 @@ full reindex:
 6. Probably do some more checks, then
 7. `index_manager.stop_dual_writes`
 8. `index_manager.cleanup_old_indices`
+
+The `client` keyword argument to `Zelastic::IndexManager.new` is optional. It defaults to the client
+passed to `Zelastic::Config.new`, if one client is passed, or the first client in the array, if an
+array is passed to `Zelastic::Config.new`.
 
 ## Development
 

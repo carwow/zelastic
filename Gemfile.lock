@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    zelastic (0.3.0)
+    zelastic (0.3.1)
       activesupport
 
 GEM
