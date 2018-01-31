@@ -61,7 +61,7 @@ module Zelastic
     def delete_by_query(query)
       logger.info('ES: Deleting batch records')
 
-      config.clients.each do |client|
+      config.clients.map do |client|
         client.delete_by_query(index: config.write_alias, body: { query: query })
       end
     end
