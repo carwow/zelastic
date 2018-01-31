@@ -6,7 +6,9 @@ module Zelastic
       attr_reader :errors
 
       def initialize(result)
-        @errors = result['items'].map { |item| item['error'] }.compact
+        @errors = result['items'].map do |item|
+          item['error'] || item.fetch('index', {})['error']
+        end.compact
         super("Errors indexing: #{errors.join(', ')}")
       end
     end
@@ -32,7 +34,7 @@ module Zelastic
       version = current_version
 
       execute_bulk do |index_name|
-        index_command(index: index_name, version: version, record: record)
+        [index_command(index: index_name, version: version, record: record)]
       end
     end
 
@@ -59,7 +61,7 @@ module Zelastic
     def delete_by_query(query)
       logger.info('ES: Deleting batch records')
 
-      config.clients.each do |client|
+      config.clients.map do |client|
         client.delete_by_query(index: config.write_alias, body: { query: query })
       end
     end
@@ -93,12 +95,12 @@ module Zelastic
     def execute_bulk(client: nil, index_name: nil)
       clients = Array(client || config.clients)
 
-      clients.map do |client|
-        indices = Array(index_name || write_indices(client))
+      clients.map do |current_client|
+        indices = Array(index_name || write_indices(current_client))
 
         commands = indices.flat_map { |index| yield(index) }
 
-        client.bulk(body: commands).tap do |result|
+        current_client.bulk(body: commands).tap do |result|
           raise IndexingError, result if result['errors']
         end
       end
