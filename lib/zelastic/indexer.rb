@@ -96,7 +96,7 @@ module Zelastic
       config.clients.map do |client|
         indices = Array(index_name || write_indices(client))
 
-        commands = indices.map { |index_name| yield(index) }
+        commands = indices.flat_map { |index| yield(index) }
 
         client.bulk(body: commands).tap do |result|
           raise IndexingError, result if result['errors']
