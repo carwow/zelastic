@@ -1,5 +1,5 @@
 ruby: &ruby
-  image: carwow/ruby-ci:2.4.2
+  image: carwow/ruby-ci:2.4.3
 
 elasticsearch_container: &elasticsearch_container
   image: carwow/elasticsearch-ci:5.5.1
@@ -19,20 +19,18 @@ jobs:
       - run: |
           bundle config --local path vendor/bundle &&
           bundle check || bundle install --jobs=4 --retry=3
+          bundle clean --force
       - save_cache:
           key: bundle-{{ checksum "Gemfile.lock" }}
-          paths: [~/zelastic/vendor/bundle]
-      - persist_to_workspace:
-          root: '~'
-          paths: [zelastic]
+          paths: [vendor/bundle]
 
   rubocop:
     working_directory: ~/zelastic
     docker:
       - *ruby
     steps:
-      - attach_workspace:
-          at: '~'
+      - checkout
+      - restore_cache: { keys: ['bundle-{{ checkout "Gemfile.lock" }}'] }
       - run: bundle exec rubocop
 
   tests:
@@ -41,8 +39,8 @@ jobs:
       - *ruby
       - *elasticsearch_container
     steps:
-      - attach_workspace:
-          at: '~'
+      - checkout
+      - restore_cache: { keys: ['bundle-{{ checkout "Gemfile.lock" }}'] }
       - run: |
           bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
 workflows:
