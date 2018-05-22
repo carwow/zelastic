@@ -73,7 +73,7 @@ module Zelastic
 
     def current_version
       config.data_source.connection
-            .select_one('SELECT select txid_snapshot_xmax(txid_current_snapshot()) as xmax')
+            .select_one('SELECT txid_snapshot_xmax(txid_current_snapshot()) as xmax')
             .fetch('xmax')
     end
 
