@@ -72,7 +72,9 @@ module Zelastic
     def_delegators :config, :logger
 
     def current_version
-      config.data_source.connection.select_one('SELECT txid_current()').fetch('txid_current')
+      config.data_source.connection
+            .select_one('SELECT select txid_snapshot_xmax(txid_current_snapshot()) as xmax')
+            .fetch('xmax')
     end
 
     def write_indices(client)
