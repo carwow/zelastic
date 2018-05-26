@@ -5,10 +5,8 @@ module Zelastic
     class IndexingError < StandardError
       attr_reader :errors
 
-      def initialize(result)
-        @errors = result['items'].map do |item|
-          item['error'] || item.fetch('index', {})['error']
-        end.compact
+      def initialize(errors)
+        @errors = errors
         super("Errors indexing: #{errors.join(', ')}")
       end
     end
@@ -103,9 +101,32 @@ module Zelastic
         commands = indices.flat_map { |index| yield(index) }
 
         current_client.bulk(body: commands).tap do |result|
-          raise IndexingError, result if result['errors']
+          check_errors!(result)
         end
       end
+    end
+
+    def check_errors!(result)
+      return false unless result['errors']
+
+      errors = result['items']
+        .map { |item| item['error'] || item.fetch('index', {})['error'] }
+        .compact
+
+      ignorable_errors, important_errors = errors
+        .partition { |error| ignorable_error?(error) }
+
+      if ignorable_errors.any?
+        logger.warn("Ignoring #{ignorable_errors.count} version conflicts")
+      end
+
+      return unless important_errors.any?
+      raise IndexingError, important_errors
+    end
+
+    def ignorable_error?(error)
+      error['type'] == 'version_conflict_engine_exception' &&
+        error['reason'] =~ /^\[#{config.type}\]\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/
     end
   end
 end
