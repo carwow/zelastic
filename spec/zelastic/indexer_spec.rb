@@ -74,7 +74,7 @@ RSpec.describe Zelastic::Indexer do
 
       results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
-      expect(results['hits']['hits'].map { |hit| hit['_version'].to_i }).to contain_exactly(6666, 6666)
+      expect(results['hits']['hits'].map { |hit| hit['_version'].to_i }).to contain_exactly(6666)
     end
   end
 
