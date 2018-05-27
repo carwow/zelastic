@@ -45,8 +45,11 @@ jobs:
       - checkout
       - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
       - run:
-          name: Give ES time to start
-          command: sleep 20
+          name: Wait for ES to be ready
+          command: |
+            until curl $ELASTICSEARCH_URL > /dev/null; do
+              echo -n .
+            done
       - run: |
           bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
 
