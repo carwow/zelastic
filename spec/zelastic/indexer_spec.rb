@@ -11,7 +11,7 @@ RSpec.describe Zelastic::Indexer do
     ) { |_| {} }
   end
 
-  let(:client) { Elasticsearch::Client.new(url: 'http://localhost:9200') }
+  let(:client) { Elasticsearch::Client.new(url: ENV.fetch('ELASTICSEARCH_URL', 'http://localhost:9200')) }
   let(:mapping) { { properties: {} } }
   let(:data_source) do
     db_conn = double(:db_conn, select_one: { 'xmax' => @xmax })
@@ -32,13 +32,17 @@ RSpec.describe Zelastic::Indexer do
     client.indices.flush(index: config.read_alias)
   end
 
+  def get_all
+    client.search(index: config.read_alias, size: 100, body: { query: { version: true } })
+  end
+
   subject(:indexer) { described_class.new(config) }
 
   describe '#index_batch' do
     it 'pushes records to the index' do
       indexer.index_batch([OpenStruct.new(id: 1), OpenStruct.new(id: 2)])
       flush!
-      results = client.search(index: config.read_alias, size: 100, body: { query: { version: true } })
+      results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1, 2)
     end
 
@@ -48,7 +52,7 @@ RSpec.describe Zelastic::Indexer do
       indexer.index_batch([OpenStruct.new(id: 1), OpenStruct.new(id: 2)])
       flush!
 
-      results = client.search(index: config.read_alias, size: 100, body: { query: {} })
+      results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1, 2)
       expect(results['hits']['hits'].map { |hit| hit['_version'].to_i }).to contain_exactly(6666, 6666)
     end
@@ -58,7 +62,7 @@ RSpec.describe Zelastic::Indexer do
     it 'pushes a record to the index' do
       indexer.index_record(OpenStruct.new(id: 1))
       flush!
-      results = client.search(index: config.read_alias, size: 100, body: { query: { version: true } })
+      results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
     end
 
@@ -68,7 +72,7 @@ RSpec.describe Zelastic::Indexer do
       indexer.index_record(OpenStruct.new(id: 1))
       flush!
 
-      results = client.search(index: config.read_alias, size: 100, body: { query: {} })
+      results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
       expect(results['hits']['hits'].map { |hit| hit['_version'].to_i }).to contain_exactly(6666, 6666)
     end
@@ -80,7 +84,7 @@ RSpec.describe Zelastic::Indexer do
       flush!
       indexer.delete_by_id(1)
       flush!
-      results = client.search(index: config.read_alias, size: 100, body: { query: { version: true } })
+      results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(2)
     end
   end
@@ -91,7 +95,7 @@ RSpec.describe Zelastic::Indexer do
       flush!
       indexer.delete_by_ids([1, 3])
       flush!
-      results = client.search(index: config.read_alias, size: 100, body: { query: { version: true } })
+      results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(2)
     end
   end
