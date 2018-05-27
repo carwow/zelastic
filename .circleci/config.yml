@@ -52,7 +52,7 @@ jobs:
               sleep 1
             done
             echo 'cluster started'
-            until curl $ELASTICSEARCH_URL/_cat/health | grep '(green|yellow)'; do
+            until curl $ELASTICSEARCH_URL/_cat/health | egrep '(green|yellow)'; do
               curl $ELASTICSEARCH_URL/_cat/health
               echo -n .
               sleep 1
