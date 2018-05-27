@@ -1,8 +1,9 @@
-ruby: &ruby
-  image: carwow/ruby-ci:2.4.4
+references:
+  ruby: &ruby
+    image: carwow/ruby-ci:2.4.4
 
-elasticsearch_container: &elasticsearch_container
-  image: carwow/elasticsearch-ci:5.5.1
+  elasticsearch_container: &elasticsearch_container
+    image: carwow/elasticsearch-ci:5.5.1
 
 version: 2
 jobs:
