@@ -11,7 +11,9 @@ RSpec.describe Zelastic::Indexer do
     ) { |_| {} }
   end
 
-  let(:client) { Elasticsearch::Client.new(url: ENV.fetch('ELASTICSEARCH_URL', 'http://localhost:9200')) }
+  let(:client) do
+    Elasticsearch::Client.new(url: ENV.fetch('ELASTICSEARCH_URL', 'http://localhost:9200'))
+  end
   let(:mapping) { { properties: {} } }
   let(:data_source) do
     db_conn = double(:db_conn, select_one: { 'xmax' => @xmax })
@@ -33,7 +35,11 @@ RSpec.describe Zelastic::Indexer do
   end
 
   def get_all
-    client.search(index: config.read_alias, size: 100, body: { version: true, query: { match_all: {} } })
+    client.search(
+      index: config.read_alias,
+      size: 100,
+      body: { version: true, query: { match_all: {} } }
+    )
   end
 
   subject(:indexer) { described_class.new(config) }
@@ -54,7 +60,8 @@ RSpec.describe Zelastic::Indexer do
 
       results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1, 2)
-      expect(results['hits']['hits'].map { |hit| hit['_version'].to_i }).to contain_exactly(6666, 6666)
+      expect(results['hits']['hits'].map { |hit| hit['_version'].to_i })
+        .to contain_exactly(6666, 6666)
     end
   end
 

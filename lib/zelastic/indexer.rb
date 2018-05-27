@@ -123,8 +123,10 @@ module Zelastic
     end
 
     def ignorable_error?(error)
+      regexp = /^\[#{config.type}\]\[\d+\]: version conflict, current version \[\d+\] is higher / +
+               /or equal to the one provided \[\d+\]$/
       error['type'] == 'version_conflict_engine_exception' &&
-        error['reason'] =~ /^\[#{config.type}\]\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/
+        error['reason'] =~ regexp
     end
   end
 end
