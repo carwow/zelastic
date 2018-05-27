@@ -47,7 +47,7 @@ jobs:
       - run:
           name: Wait for ES to be ready
           command: |
-            until curl $ELASTICSEARCH_URL/_cat/health | grep green 2> /dev/null; do
+            until curl $ELASTICSEARCH_URL/_cat/health | grep green; do
               echo -n .
               sleep 1
             done

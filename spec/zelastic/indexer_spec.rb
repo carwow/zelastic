@@ -33,7 +33,7 @@ RSpec.describe Zelastic::Indexer do
   end
 
   def get_all
-    client.search(index: config.read_alias, size: 100, body: { query: { version: true } })
+    client.search(index: config.read_alias, size: 100, body: { version: true, query: { match_all: {} } })
   end
 
   subject(:indexer) { described_class.new(config) }
