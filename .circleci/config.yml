@@ -1,5 +1,5 @@
 ruby: &ruby
-  image: carwow/ruby-ci:2.4.3
+  image: carwow/ruby-ci:2.4.4
 
 elasticsearch_container: &elasticsearch_container
   image: carwow/elasticsearch-ci:5.5.1
@@ -43,6 +43,7 @@ jobs:
       - restore_cache: { keys: ['bundle-{{ checkout "Gemfile.lock" }}'] }
       - run: |
           bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
+
 workflows:
   version: 2
   build:
