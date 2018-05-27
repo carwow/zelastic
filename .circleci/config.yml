@@ -31,7 +31,7 @@ jobs:
       - *ruby
     steps:
       - checkout
-      - restore_cache: { keys: ['bundle-{{ checkout "Gemfile.lock" }}'] }
+      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
       - run: bundle exec rubocop
 
   tests:
@@ -41,7 +41,7 @@ jobs:
       - *elasticsearch_container
     steps:
       - checkout
-      - restore_cache: { keys: ['bundle-{{ checkout "Gemfile.lock" }}'] }
+      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
       - run: |
           bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
 

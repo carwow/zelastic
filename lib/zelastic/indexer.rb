@@ -110,15 +110,13 @@ module Zelastic
       return false unless result['errors']
 
       errors = result['items']
-        .map { |item| item['error'] || item.fetch('index', {})['error'] }
-        .compact
+               .map { |item| item['error'] || item.fetch('index', {})['error'] }
+               .compact
 
       ignorable_errors, important_errors = errors
-        .partition { |error| ignorable_error?(error) }
+                                           .partition { |error| ignorable_error?(error) }
 
-      if ignorable_errors.any?
-        logger.warn("Ignoring #{ignorable_errors.count} version conflicts")
-      end
+      logger.warn("Ignoring #{ignorable_errors.count} version conflicts") if ignorable_errors.any?
 
       return unless important_errors.any?
       raise IndexingError, important_errors
