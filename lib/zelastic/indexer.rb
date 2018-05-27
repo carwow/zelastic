@@ -123,8 +123,9 @@ module Zelastic
     end
 
     def ignorable_error?(error)
-      regexp = /^\[#{config.type}\]\[\d+\]: version conflict, current version \[\d+\] is higher / +
-               /or equal to the one provided \[\d+\]$/
+      # rubocop:disable Metrics/LineLength
+      regexp = /^\[#{config.type}\]\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/
+      # rubocop:enable Metrics/LineLength
       error['type'] == 'version_conflict_engine_exception' &&
         error['reason'] =~ regexp
     end
