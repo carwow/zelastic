@@ -47,7 +47,13 @@ jobs:
       - run:
           name: Wait for ES to be ready
           command: |
-            until curl $ELASTICSEARCH_URL/_cat/health | grep green; do
+            until curl $ELASTICSEARCH_URL/_cat/health ; do
+              echo -n .
+              sleep 1
+            done
+            echo 'cluster started'
+            until curl $ELASTICSEARCH_URL/_cat/health | grep '(green|yellow)'; do
+              curl $ELASTICSEARCH_URL/_car/health
               echo -n .
               sleep 1
             done
