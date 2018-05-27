@@ -47,13 +47,7 @@ jobs:
       - run:
           name: Wait for ES to be ready
           command: |
-            until curl $ELASTICSEARCH_URL/_cat/health ; do
-              echo -n .
-              sleep 1
-            done
-            echo 'cluster started'
-            until curl $ELASTICSEARCH_URL/_cat/health | egrep '(green|yellow)'; do
-              curl $ELASTICSEARCH_URL/_cat/health
+            until curl $ELASTICSEARCH_URL/_cat/health | egrep '(green|yellow)' 2>&1 > /dev/null; do
               echo -n .
               sleep 1
             done
