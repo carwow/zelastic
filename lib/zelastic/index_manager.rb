@@ -91,7 +91,9 @@ module Zelastic
         logger.info('Nothing to do: no old indices')
         return
       end
-      logger.info("Deleting #{indices_to_delete.count} old indices: #{indices_to_delete.join(', ')}")
+      logger.info(
+        "Deleting #{indices_to_delete.count} old indices: #{indices_to_delete.join(', ')}"
+      )
       client.indices.delete(index: indices_to_delete)
     end
     # rubocop:enable Metrics/AbcSize

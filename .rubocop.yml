@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 AllCops:
   TargetRubyVersion: 2.4
 
@@ -5,6 +7,7 @@ AllCops:
 Metrics/BlockLength:
   Exclude:
     - '*.gemspec'
+    - 'spec/**/*'
 
 # Configuration parameters: CountComments.
 Metrics/MethodLength:
@@ -18,4 +21,4 @@ Style/Documentation:
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
 # URISchemes: http, https
 Metrics/LineLength:
-  Max: 102
+  Max: 100

@@ -1,8 +1,11 @@
-ruby: &ruby
-  image: carwow/ruby-ci:2.4.3
+references:
+  ruby: &ruby
+    image: carwow/ruby-ci:2.4.4
+    environment:
+      ELASTICSEARCH_URL: http://localhost:9200
 
-elasticsearch_container: &elasticsearch_container
-  image: carwow/elasticsearch-ci:5.5.1
+  elasticsearch_container: &elasticsearch_container
+    image: carwow/elasticsearch-ci:5.5.1
 
 version: 2
 jobs:
@@ -30,7 +33,7 @@ jobs:
       - *ruby
     steps:
       - checkout
-      - restore_cache: { keys: ['bundle-{{ checkout "Gemfile.lock" }}'] }
+      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
       - run: bundle exec rubocop
 
   tests:
@@ -40,9 +43,17 @@ jobs:
       - *elasticsearch_container
     steps:
       - checkout
-      - restore_cache: { keys: ['bundle-{{ checkout "Gemfile.lock" }}'] }
+      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
+      - run:
+          name: Wait for ES to be ready
+          command: |
+            until curl $ELASTICSEARCH_URL/_cat/health | egrep '(green|yellow)' 2>&1 > /dev/null; do
+              echo -n .
+              sleep 1
+            done
       - run: |
           bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
+
 workflows:
   version: 2
   build:
