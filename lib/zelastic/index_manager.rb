@@ -27,12 +27,8 @@ module Zelastic
                      config.write_alias
                    end
 
-      indexed_count = 0
-
-      config.data_source.find_in_batches(batch_size: batch_size) do |batch|
-        indexed_count += batch_size
-        indexed_percent = (indexed_count.to_f/current_index_size * 100).round(2)
-        logger.info("ES: (ESTIMATED: #{indexed_percent}%) Indexing #{config.type} records")
+      config.data_source.find_in_batches(batch_size: batch_size).with_index do |batch, idx|
+        logger.info("ES: (ESTIMATED: #{indexed_percent(batch_size, idx + 1)}%) Indexing #{config.type} records")
         indexer.index_batch(batch, client: client, index_name: index_name)
       end
     end
@@ -114,6 +110,10 @@ module Zelastic
 
     def current_index_size
       @current_index_size ||= client.count(index: config.read_alias, type: config.type)['count']
+    end
+
+    def indexed_percent(batch_size, batch_number)
+      (batch_size * batch_number.to_f / current_index_size * 100).round(2)
     end
   end
 end
