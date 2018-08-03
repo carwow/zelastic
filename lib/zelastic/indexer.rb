@@ -18,12 +18,10 @@ module Zelastic
     end
 
     def index_batch(batch, client: nil, index_name: nil)
-      logger.info("ES: Indexing #{config.type} record")
-
       version = current_version
-      execute_bulk(client: client, index_name: index_name) do |index_name|
+      execute_bulk(client: client, index_name: index_name) do |index|
         batch.map do |record|
-          index_command(index: index_name, version: version, record: record)
+          index_command(index: index, version: version, record: record)
         end
       end
     end

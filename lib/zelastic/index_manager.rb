@@ -27,7 +27,12 @@ module Zelastic
                      config.write_alias
                    end
 
+      total = config.data_source.count
+      indexed_count = 0
+
       config.data_source.find_in_batches(batch_size: batch_size) do |batch|
+        indexed_count += batch_size
+        logger.info("ES: (#{(indexed_count.to_f/total * 100).round(2)}% - #{indexed_count}/#{total}) Indexing #{config.type} records")
         indexer.index_batch(batch, client: client, index_name: index_name)
       end
     end
