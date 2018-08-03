@@ -10,24 +10,23 @@ module Zelastic
     end
 
     def create_index(unique_name)
-      full_name = [config.read_alias, unique_name].join('_')
+      index_name = index_name_from_unique(unique_name)
 
       client.indices.create(
-        index: full_name,
+        index: index_name,
         body: config.index_definition
       )
 
-      client.indices.put_alias(index: full_name, name: config.write_alias)
+      client.indices.put_alias(index: index_name, name: config.write_alias)
     end
 
     def populate_index(unique_name = nil, batch_size: 3000)
-      index_name = if unique_name
-                     [config.read_alias, unique_name].join('_')
-                   else
-                     config.write_alias
-                   end
+      index_name = index_name_from_unique(unique_name)
 
-      config.data_source.find_in_batches(batch_size: batch_size) do |batch|
+      config.data_source.find_in_batches(batch_size: batch_size).with_index do |batch, i|
+        logger.info(
+          "ES: (ESTIMATED: #{indexed_percent(batch_size, i + 1)}%) Indexing #{config.type} records"
+        )
         indexer.index_batch(batch, client: client, index_name: index_name)
       end
     end
@@ -105,6 +104,22 @@ module Zelastic
 
     def indexer
       @indexer ||= Indexer.new(config)
+    end
+
+    def index_name_from_unique(unique_name)
+      if unique_name
+        [config.read_alias, unique_name].join('_')
+      else
+        config.write_alias
+      end
+    end
+
+    def current_index_size
+      @current_index_size ||= client.count(index: config.read_alias, type: config.type)['count']
+    end
+
+    def indexed_percent(batch_size, batch_number)
+      (batch_size * batch_number.to_f / current_index_size * 100).round(2)
     end
   end
 end
