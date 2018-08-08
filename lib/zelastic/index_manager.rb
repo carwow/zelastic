@@ -24,9 +24,7 @@ module Zelastic
       index_name = index_name_from_unique(unique_name)
 
       config.data_source.find_in_batches(batch_size: batch_size).with_index do |batch, i|
-        logger.info(
-          "ES: (ESTIMATED: #{indexed_percent(batch_size, i + 1)}%) Indexing #{config.type} records"
-        )
+        logger.info(populate_index_log(batch_size: batch_size, batch_number: i + 1))
         indexer.index_batch(batch, client: client, index_name: index_name)
       end
     end
@@ -114,12 +112,24 @@ module Zelastic
       end
     end
 
+    def populate_index_log(batch_size:, batch_number:)
+      if current_index_exists?
+        "ES: (ESTIMATED: #{indexed_percent(batch_size, batch_number)}%) Indexing #{config.type} records"
+      else
+        "ES: (First index) Indexing #{config.type} records"
+      end
+    end
+
     def current_index_size
       @current_index_size ||= client.count(index: config.read_alias, type: config.type)['count']
     end
 
     def indexed_percent(batch_size, batch_number)
       (batch_size * batch_number.to_f / current_index_size * 100).round(2)
+    end
+
+    def current_index_exists?
+      client.indices.exists?(index: config.read_alias)
     end
   end
 end
