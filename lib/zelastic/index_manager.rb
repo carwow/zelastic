@@ -12,11 +12,7 @@ module Zelastic
     def create_index(unique_name)
       index_name = index_name_from_unique(unique_name)
 
-      client.indices.create(
-        index: index_name,
-        body: config.index_definition
-      )
-
+      client.indices.create(index: index_name, body: config.index_definition)
       client.indices.put_alias(index: index_name, name: config.write_alias)
     end
 
@@ -113,11 +109,12 @@ module Zelastic
     end
 
     def populate_index_log(batch_size:, batch_number:)
-      if current_index_exists?
-        "ES: (ESTIMATED: #{indexed_percent(batch_size, batch_number)}%) Indexing #{config.type} records"
-      else
-        "ES: (First index) Indexing #{config.type} records"
-      end
+      progress = if current_index_exists?
+                   "ESTIMATED: #{indexed_percent(batch_size, batch_number)}%"
+                 else
+                   'First index'
+                 end
+      "ES: (#{progress}) Indexing #{config.type} records"
     end
 
     def current_index_size
