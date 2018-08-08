@@ -1,3 +1,8 @@
+v0.5.1 - Aug 8th, 2018
+---
+
+- Fix re-indexing log output upon initial index creation (#7)
+
 v0.5.0 - Aug 3rd, 2018
 ---
 
