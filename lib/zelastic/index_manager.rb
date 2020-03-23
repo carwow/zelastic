@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module Zelastic
-  class IndexManager
+  # rubocop:disable Metrics/AbcSize
+  class IndexManager # rubocop:disable Metrics/ClassLength
     extend Forwardable
 
     def initialize(config, client: nil)
@@ -25,7 +26,6 @@ module Zelastic
       end
     end
 
-    # rubocop:disable Metrics/AbcSize
     def switch_read_index(new_name)
       new_index = [config.read_alias, new_name].join('_')
 
@@ -89,7 +89,6 @@ module Zelastic
       )
       client.indices.delete(index: indices_to_delete)
     end
-    # rubocop:enable Metrics/AbcSize
 
     private
 
@@ -118,7 +117,14 @@ module Zelastic
     end
 
     def current_index_size
-      @current_index_size ||= client.count(index: config.read_alias, type: config.type)['count']
+      @current_index_size ||= client.count(**count_params)['count']
+    end
+
+    def count_params
+      {
+        index: config.read_alias,
+        type: config.type? ? config.type : nil
+      }.compact
     end
 
     def indexed_percent(batch_size, batch_number)
@@ -129,4 +135,5 @@ module Zelastic
       client.indices.exists?(index: config.read_alias)
     end
   end
+  # rubocop:enable Metrics/AbcSize
 end
