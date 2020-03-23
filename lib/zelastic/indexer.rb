@@ -43,13 +43,10 @@ module Zelastic
 
       execute_bulk do |index_name|
         ids.map do |id|
-          {
-            delete: {
-              _index: index_name,
-              _type: config.type,
-              _id: id
-            }
-          }
+          delete_params = { _index: index_name, _id: id }
+          delete_params[:_type] = config.type if config.type?
+
+          { delete: delete_params }
         end
       end
     end
@@ -78,15 +75,19 @@ module Zelastic
     end
 
     def index_command(index:, version:, record:)
+      version_params =
+        if config.type?
+          { _version: version, _version_type: :external, _type: config.type }
+        else
+          { version: version, version_type: :external }
+        end
+
       {
         index: {
           _index: index,
-          _type: config.type,
           _id: record.id,
-          _version: version,
-          _version_type: :external,
           data: config.index_data(record)
-        }
+        }.merge(version_params)
       }
     end
 
@@ -117,6 +118,7 @@ module Zelastic
       logger.warn("Ignoring #{ignorable_errors.count} version conflicts") if ignorable_errors.any?
 
       return unless important_errors.any?
+
       raise IndexingError, important_errors
     end
 

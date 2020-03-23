@@ -15,7 +15,12 @@ module Zelastic
       @data_source = data_source
       @mapping = mapping
       @index_data = index_data
+      @type = overrides.fetch(:type, true)
       @overrides = overrides
+    end
+
+    def type?
+      @type
     end
 
     def index_data(model)
@@ -36,13 +41,14 @@ module Zelastic
 
     def logger
       return Rails.logger if defined?(Rails)
+
       @logger ||= Logger.new(STDOUT)
     end
 
     def index_definition
       {
         settings: overrides.fetch(:index_settings, {}),
-        mappings: { type => mapping }
+        mappings: type ? { type => mapping } : mapping
       }
     end
 
