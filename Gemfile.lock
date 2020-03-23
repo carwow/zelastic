@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    zelastic (0.5.1)
+    zelastic (0.6.0)
       activesupport
 
 GEM
@@ -88,4 +88,4 @@ DEPENDENCIES
   zelastic!
 
 BUNDLED WITH
-   1.16.2
+   1.17.2
