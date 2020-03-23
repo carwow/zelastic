@@ -3,11 +3,13 @@
 require 'spec_helper'
 
 RSpec.describe Zelastic::Indexer do
+  let(:type) { Gem::Version.new(client.info.dig('version', 'number')) <= Gem::Version.new('7.0.0') }
   let(:config) do
     Zelastic::Config.new(
       client: client,
       data_source: data_source,
-      mapping: mapping
+      mapping: mapping,
+      type: type
     ) { |_| {} }
   end
 
@@ -32,6 +34,7 @@ RSpec.describe Zelastic::Indexer do
 
   def flush!
     client.indices.flush(index: config.read_alias)
+    client.indices.refresh(index: config.read_alias)
   end
 
   def get_all

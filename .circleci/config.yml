@@ -7,6 +7,9 @@ references:
   elasticsearch_container: &elasticsearch_container
     image: carwow/elasticsearch-ci:5.5.1
 
+  elasticsearch_7_container: &elasticsearch_7_container
+    image: cga1123/elasticsearch-ci:7.6.1
+
 version: 2
 jobs:
   bundle:
@@ -54,6 +57,24 @@ jobs:
       - run: |
           bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
 
+  tests_7:
+    working_directory: ~/zelastic
+    docker:
+      - *ruby
+      - *elasticsearch_7_container
+    steps:
+      - checkout
+      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
+      - run:
+          name: Wait for ES to be ready
+          command: |
+            until curl $ELASTICSEARCH_URL/_cat/health | egrep '(green|yellow)' 2>&1 > /dev/null; do
+              echo -n .
+              sleep 1
+            done
+      - run: |
+          bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
+
 workflows:
   version: 2
   build:
@@ -62,4 +83,6 @@ workflows:
       - rubocop:
           requires: [bundle]
       - tests:
+          requires: [bundle]
+      - tests_7:
           requires: [bundle]
