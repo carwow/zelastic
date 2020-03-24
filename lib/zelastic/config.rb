@@ -15,12 +15,12 @@ module Zelastic
       @data_source = data_source
       @mapping = mapping
       @index_data = index_data
-      @type = overrides.fetch(:type, true)
+      @_type = overrides.fetch(:type, true)
       @overrides = overrides
     end
 
     def type?
-      @type
+      @_type
     end
 
     def index_data(model)
