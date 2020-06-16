@@ -1,6 +1,6 @@
 references:
   ruby: &ruby
-    image: carwow/ruby-ci:2.4.4
+    image: carwow/ruby-ci:2.6
     environment:
       ELASTICSEARCH_URL: http://localhost:9200
 
