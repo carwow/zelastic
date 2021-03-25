@@ -17,19 +17,19 @@ module Zelastic
       @config = config
     end
 
-    def index_batch(batch, client: nil, index_name: nil)
+    def index_batch(batch, client: nil, index_name: nil, refresh: false)
       version = current_version
-      execute_bulk(client: client, index_name: index_name) do |index|
+      execute_bulk(client: client, index_name: index_name, refresh: refresh) do |index|
         batch.map do |record|
           index_command(index: index, version: version, record: record)
         end
       end
     end
 
-    def index_record(record)
+    def index_record(record, refresh: false)
       version = current_version
 
-      execute_bulk do |index_name|
+      execute_bulk(refresh: refresh) do |index_name|
         [index_command(index: index_name, version: version, record: record)]
       end
     end
@@ -91,7 +91,7 @@ module Zelastic
       }
     end
 
-    def execute_bulk(client: nil, index_name: nil)
+    def execute_bulk(client: nil, index_name: nil, refresh: false)
       clients = Array(client || config.clients)
 
       clients.map do |current_client|
@@ -99,7 +99,7 @@ module Zelastic
 
         commands = indices.flat_map { |index| yield(index) }
 
-        current_client.bulk(body: commands).tap do |result|
+        current_client.bulk(body: commands, refresh: refresh).tap do |result|
           check_errors!(result)
         end
       end

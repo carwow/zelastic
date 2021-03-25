@@ -66,6 +66,15 @@ RSpec.describe Zelastic::Indexer do
       expect(results['hits']['hits'].map { |hit| hit['_version'].to_i })
         .to contain_exactly(6666, 6666)
     end
+
+    context 'refresh param set to true' do
+      it 'pushes records to the index and is available immediately without flushing' do
+        indexer.index_batch([OpenStruct.new(id: 1), OpenStruct.new(id: 2)], refresh: true)
+
+        results = get_all
+        expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1, 2)
+      end
+    end
   end
 
   describe '#index_record' do
@@ -85,6 +94,15 @@ RSpec.describe Zelastic::Indexer do
       results = get_all
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
       expect(results['hits']['hits'].map { |hit| hit['_version'].to_i }).to contain_exactly(6666)
+    end
+
+    context 'refresh param set to true' do
+      it 'pushes a record to the index and is available immediately without flushing' do
+        indexer.index_record(OpenStruct.new(id: 1), refresh: true)
+
+        results = get_all
+        expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
+      end
     end
   end
 
