@@ -42,7 +42,7 @@ module Zelastic
     def logger
       return Rails.logger if defined?(Rails)
 
-      @logger ||= Logger.new(STDOUT)
+      @logger ||= Logger.new($stdout)
     end
 
     def index_definition

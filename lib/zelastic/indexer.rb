@@ -62,12 +62,13 @@ module Zelastic
     private
 
     attr_reader :config
+
     def_delegators :config, :logger
 
     def current_version
       config.data_source.connection
-            .select_one('SELECT txid_snapshot_xmax(txid_current_snapshot()) as xmax')
-            .fetch('xmax')
+        .select_one('SELECT txid_snapshot_xmax(txid_current_snapshot()) as xmax')
+        .fetch('xmax')
     end
 
     def write_indices(client)
@@ -91,13 +92,13 @@ module Zelastic
       }
     end
 
-    def execute_bulk(client: nil, index_name: nil, refresh: false)
+    def execute_bulk(client: nil, index_name: nil, refresh: false, &block)
       clients = Array(client || config.clients)
 
       clients.map do |current_client|
         indices = Array(index_name || write_indices(current_client))
 
-        commands = indices.flat_map { |index| yield(index) }
+        commands = indices.flat_map(&block)
 
         current_client.bulk(body: commands, refresh: refresh).tap do |result|
           check_errors!(result)
@@ -109,11 +110,10 @@ module Zelastic
       return false unless result['errors']
 
       errors = result['items']
-               .map { |item| item['error'] || item.fetch('index', {})['error'] }
-               .compact
+        .filter_map { |item| item['error'] || item.fetch('index', {})['error'] }
 
       ignorable_errors, important_errors = errors
-                                           .partition { |error| ignorable_error?(error) }
+        .partition { |error| ignorable_error?(error) }
 
       logger.warn("Ignoring #{ignorable_errors.count} version conflicts") if ignorable_errors.any?
 

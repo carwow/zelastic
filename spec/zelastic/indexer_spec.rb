@@ -37,7 +37,7 @@ RSpec.describe Zelastic::Indexer do
     client.indices.refresh(index: config.read_alias)
   end
 
-  def get_all
+  def search
     client.search(
       index: config.read_alias,
       size: 100,
@@ -51,7 +51,7 @@ RSpec.describe Zelastic::Indexer do
     it 'pushes records to the index' do
       indexer.index_batch([OpenStruct.new(id: 1), OpenStruct.new(id: 2)])
       flush!
-      results = get_all
+      results = search
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1, 2)
     end
 
@@ -61,7 +61,7 @@ RSpec.describe Zelastic::Indexer do
       indexer.index_batch([OpenStruct.new(id: 1), OpenStruct.new(id: 2)])
       flush!
 
-      results = get_all
+      results = search
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1, 2)
       expect(results['hits']['hits'].map { |hit| hit['_version'].to_i })
         .to contain_exactly(6666, 6666)
@@ -71,7 +71,7 @@ RSpec.describe Zelastic::Indexer do
       it 'pushes records to the index and is available immediately without flushing' do
         indexer.index_batch([OpenStruct.new(id: 1), OpenStruct.new(id: 2)], refresh: true)
 
-        results = get_all
+        results = search
         expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1, 2)
       end
     end
@@ -81,7 +81,7 @@ RSpec.describe Zelastic::Indexer do
     it 'pushes a record to the index' do
       indexer.index_record(OpenStruct.new(id: 1))
       flush!
-      results = get_all
+      results = search
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
     end
 
@@ -91,7 +91,7 @@ RSpec.describe Zelastic::Indexer do
       indexer.index_record(OpenStruct.new(id: 1))
       flush!
 
-      results = get_all
+      results = search
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
       expect(results['hits']['hits'].map { |hit| hit['_version'].to_i }).to contain_exactly(6666)
     end
@@ -100,7 +100,7 @@ RSpec.describe Zelastic::Indexer do
       it 'pushes a record to the index and is available immediately without flushing' do
         indexer.index_record(OpenStruct.new(id: 1), refresh: true)
 
-        results = get_all
+        results = search
         expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(1)
       end
     end
@@ -112,7 +112,7 @@ RSpec.describe Zelastic::Indexer do
       flush!
       indexer.delete_by_id(1)
       flush!
-      results = get_all
+      results = search
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(2)
     end
   end
@@ -123,7 +123,7 @@ RSpec.describe Zelastic::Indexer do
       flush!
       indexer.delete_by_ids([1, 3])
       flush!
-      results = get_all
+      results = search
       expect(results['hits']['hits'].map { |hit| hit['_id'].to_i }).to contain_exactly(2)
     end
   end
