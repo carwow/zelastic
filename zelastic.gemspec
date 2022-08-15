@@ -15,6 +15,8 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/carwow/zelastic'
   spec.license       = 'MIT'
 
+  spec.metadata['rubygems_mfa_required'] = 'true'
+
   spec.files = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
   end
@@ -25,10 +27,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activesupport'
 
   spec.add_development_dependency 'activerecord'
-  spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'carwow_rubocop'
-  spec.add_development_dependency 'elasticsearch'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'bundler', '~> 2'
+  spec.add_development_dependency 'carwow_rubocop', '~> 4'
+  spec.add_development_dependency 'elasticsearch', '>= 5', '< 8'
+  spec.add_development_dependency 'pry', '~> 0.14'
+  spec.add_development_dependency 'rake', '~> 13'
+  spec.add_development_dependency 'rspec', '~> 3'
 end

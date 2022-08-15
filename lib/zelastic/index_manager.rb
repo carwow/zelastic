@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module Zelastic
-  # rubocop:disable Metrics/AbcSize
-  class IndexManager # rubocop:disable Metrics/ClassLength
+  class IndexManager
     extend Forwardable
 
     def initialize(config, client: nil)
@@ -37,12 +36,14 @@ module Zelastic
       remove_action =
         ({ remove: { index: old_index, alias: config.read_alias } } if old_index)
 
-      client.indices.update_aliases(body: {
-                                      actions: [
-                                        remove_action,
-                                        { add: { index: new_index, alias: config.read_alias } }
-                                      ].compact
-                                    })
+      client.indices.update_aliases(
+        body: {
+          actions: [
+            remove_action,
+            { add: { index: new_index, alias: config.read_alias } }
+          ].compact
+        }
+      )
     end
 
     def stop_dual_writes
@@ -52,14 +53,15 @@ module Zelastic
       logger.info("Currently used index is #{current_index}")
 
       other_write_indices = client.indices.get_alias(name: config.write_alias).keys
-                                  .reject { |name| name == current_index }
+        .reject { |name| name == current_index }
 
       if other_write_indices.none?
         logger.info("No write indexes that aren't the read index. Nothing to do!")
         return
       end
       logger.info("Stopping writes to #{other_write_indices.count} old ES indices: " \
-                        "#{other_write_indices.join(', ')}")
+                  "#{other_write_indices.join(', ')}"
+                 )
 
       actions = other_write_indices.map do |index|
         { remove: { index: index, alias: config.write_alias } }
@@ -74,11 +76,11 @@ module Zelastic
       logger.info("Currently used index is #{current_index}")
 
       indices_to_delete = client
-                          .cat
-                          .indices(format: :json)
-                          .map { |index| index['index'] }
-                          .select { |name| name.start_with?(config.read_alias) }
-                          .reject { |name| name == current_index }
+        .cat
+        .indices(format: :json)
+        .map { |index| index['index'] }
+        .select { |name| name.start_with?(config.read_alias) }
+        .reject { |name| name == current_index }
 
       if indices_to_delete.none?
         logger.info('Nothing to do: no old indices')
@@ -93,6 +95,7 @@ module Zelastic
     private
 
     attr_reader :config, :client
+
     def_delegators :config, :logger
 
     def indexer
@@ -135,5 +138,4 @@ module Zelastic
       client.indices.exists?(index: config.read_alias)
     end
   end
-  # rubocop:enable Metrics/AbcSize
 end

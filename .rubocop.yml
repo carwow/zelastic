@@ -1,24 +1,10 @@
-inherit_from: .rubocop_todo.yml
+inherit_gem:
+  carwow_rubocop:
+    - config/default.yml
 
-AllCops:
-  TargetRubyVersion: 2.4
+inherit_mode:
+  merge:
+    - Exclude
 
-# Configuration parameters: CountComments, ExcludedMethods.
-Metrics/BlockLength:
-  Exclude:
-    - '*.gemspec'
-    - 'spec/**/*'
-
-# Configuration parameters: CountComments.
-Metrics/MethodLength:
-  Max: 18
-
-# Offense count: 2
-Style/Documentation:
-  Exclude:
-    - '**/*'
-
-# Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
-# URISchemes: http, https
-Metrics/LineLength:
-  Max: 100
+Metrics:
+  Enabled: false
