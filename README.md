@@ -1,4 +1,7 @@
-# Zero-downtime indexing from ActiveRecord->Elasticsearch
+# Zelastic
+
+Zero-downtime Elasticsearch tooling for managing indices and indexing from
+ActiveRecord with PostgreSQL to Elasticsearch.
 
 ## Installation
 
@@ -10,13 +13,14 @@ gem 'zelastic'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
     $ gem install zelastic
 
 ## Usage
+
 ### Setup
 
 For each ActiveRecord scope you want to index, you'll need a configuration:
@@ -46,7 +50,6 @@ You can also override some defaults, if you wish:
   here
 - `read_alias`: by default this is the table name of the `data_source`
 - `write_alias`: by default this is the `read_alias`, with `_write` appended
-- `type`: by default this is `read_alias.singularize`
 
 If you pass an array to as the `client` argument, all writes will be applied to every client in the
 array.

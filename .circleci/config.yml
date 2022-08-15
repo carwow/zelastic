@@ -14,6 +14,7 @@ jobs:
       - image: "elasticsearch:<< parameters.elasticsearch_version >>"
         environment:
           "discovery.type": single-node
+          "xpack.security.enabled": false
     environment:
       ELASTICSEARCH_GEM_VERSION: "<< parameters.elasticsearch_gem_version >>"
     steps:
@@ -28,6 +29,15 @@ workflows:
   test:
     jobs:
       - test:
+          name: "test with elasticsearch v8
+            and gem << matrix.elasticsearch_gem_version >>
+            and ruby v<< matrix.ruby_version >>"
+          elasticsearch_version: "8.3.3"
+          matrix:
+            parameters:
+              ruby_version: ["3.1", "2.7"]
+              elasticsearch_gem_version: ["~> 8", "~> 7"]
+      - test:
           name: "test with elasticsearch v7
             and gem << matrix.elasticsearch_gem_version >>
             and ruby v<< matrix.ruby_version >>"
@@ -35,13 +45,4 @@ workflows:
           matrix:
             parameters:
               ruby_version: ["3.1", "2.7"]
-              elasticsearch_gem_version: ["~> 7", "~> 5"]
-      - test:
-          name: "test with elasticsearch v5
-            and gem ~> 5
-            and ruby v<< matrix.ruby_version >>"
-          elasticsearch_version: "5.6-alpine"
-          elasticsearch_gem_version: "~> 5"
-          matrix:
-            parameters:
-              ruby_version: ["3.1", "2.7"]
+              elasticsearch_gem_version: ["~> 7"]

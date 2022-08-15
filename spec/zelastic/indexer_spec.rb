@@ -3,24 +3,30 @@
 require 'spec_helper'
 
 RSpec.describe Zelastic::Indexer do
-  let(:type) { Gem::Version.new(client.info.dig('version', 'number')) <= Gem::Version.new('7.0.0') }
   let(:config) do
     Zelastic::Config.new(
       client: client,
       data_source: data_source,
       mapping: mapping,
-      type: type
+      logger: Logger.new('log/test.log')
     ) { |_| {} }
   end
 
   let(:client) do
-    Elasticsearch::Client.new(url: ENV.fetch('ELASTICSEARCH_URL', 'http://localhost:9200'))
+    Elasticsearch::Client.new(
+      url: ENV.fetch('ELASTICSEARCH_URL', 'http://localhost:9200')
+    )
+  end
+  let(:data_source) do
+    lambda do # verifies lazy eval of data source
+      class_double(
+        ActiveRecord::Base,
+        table_name: 'table_name',
+        connection: double(:connection, select_one: { 'xmax' => @xmax })
+      )
+    end
   end
   let(:mapping) { { properties: {} } }
-  let(:data_source) do
-    db_conn = double(:db_conn, select_one: { 'xmax' => @xmax })
-    double(:data_source, table_name: 'table_name', connection: db_conn)
-  end
   let(:index_id) { SecureRandom.hex(3) }
 
   before do

@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
+
+require 'active_record'
 require 'active_support'
 require 'active_support/core_ext'
 require 'elasticsearch'
 require 'ostruct'
+require 'pry'
 require 'securerandom'
+
 require 'zelastic'
 
 RSpec.configure do |config|

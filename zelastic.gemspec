@@ -24,12 +24,13 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'elasticsearch', '>= 7', '< 9'
+
+  spec.add_dependency 'activerecord'
   spec.add_dependency 'activesupport'
 
-  spec.add_development_dependency 'activerecord'
   spec.add_development_dependency 'bundler', '~> 2'
   spec.add_development_dependency 'carwow_rubocop', '~> 4'
-  spec.add_development_dependency 'elasticsearch', '>= 5', '< 8'
   spec.add_development_dependency 'pry', '~> 0.14'
   spec.add_development_dependency 'rake', '~> 13'
   spec.add_development_dependency 'rspec', '~> 3'
