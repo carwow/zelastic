@@ -1,88 +1,47 @@
-references:
-  ruby: &ruby
-    image: carwow/ruby-ci:2.6
-    environment:
-      ELASTICSEARCH_URL: http://localhost:9200
+version: 2.1
 
-  elasticsearch_container: &elasticsearch_container
-    image: carwow/elasticsearch-ci:5.5.1
-
-  elasticsearch_7_container: &elasticsearch_7_container
-    image: carwow/elasticsearch-ci:7.6.1
-
-version: 2
 jobs:
-  bundle:
-    working_directory: ~/zelastic
+  test:
+    parameters:
+      ruby_version:
+        type: string
+      elasticsearch_version:
+        type: string
+      elasticsearch_gem_version:
+        type: string
     docker:
-      - *ruby
+      - image: "cimg/ruby:<< parameters.ruby_version >>"
+      - image: "elasticsearch:<< parameters.elasticsearch_version >>"
+        environment:
+          "discovery.type": single-node
+    environment:
+      ELASTICSEARCH_GEM_VERSION: "<< parameters.elasticsearch_gem_version >>"
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - bundle-{{ checksum "Gemfile.lock" }}
-            - bundle-
-      - run: |
-          bundle config --local path vendor/bundle &&
-          bundle check || bundle install --jobs=4 --retry=3
-          bundle clean --force
-      - save_cache:
-          key: bundle-{{ checksum "Gemfile.lock" }}
-          paths: [vendor/bundle]
-
-  rubocop:
-    working_directory: ~/zelastic
-    docker:
-      - *ruby
-    steps:
-      - checkout
-      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
-      - run: bundle exec rubocop
-
-  tests:
-    working_directory: ~/zelastic
-    docker:
-      - *ruby
-      - *elasticsearch_container
-    steps:
-      - checkout
-      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
-      - run:
-          name: Wait for ES to be ready
-          command: |
-            until curl $ELASTICSEARCH_URL/_cat/health | egrep '(green|yellow)' 2>&1 > /dev/null; do
-              echo -n .
-              sleep 1
-            done
-      - run: |
-          bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
-
-  tests_7:
-    working_directory: ~/zelastic
-    docker:
-      - *ruby
-      - *elasticsearch_7_container
-    steps:
-      - checkout
-      - restore_cache: { keys: ['bundle-{{ checksum "Gemfile.lock" }}'] }
-      - run:
-          name: Wait for ES to be ready
-          command: |
-            until curl $ELASTICSEARCH_URL/_cat/health | egrep '(green|yellow)' 2>&1 > /dev/null; do
-              echo -n .
-              sleep 1
-            done
-      - run: |
-          bundle exec rspec --pattern "**/*_spec.rb" --format "progress"
+      - run: bin/setup
+      - run: bin/rubocop
+      - run: dockerize -wait http://localhost:9200 -timeout 1m
+      - run: bin/rspec
 
 workflows:
   version: 2
-  build:
+  test:
     jobs:
-      - bundle
-      - rubocop:
-          requires: [bundle]
-      - tests:
-          requires: [bundle]
-      - tests_7:
-          requires: [bundle]
+      - test:
+          name: "test with elasticsearch v7
+            and gem << matrix.elasticsearch_gem_version >>
+            and ruby v<< matrix.ruby_version >>"
+          elasticsearch_version: "7.17.5"
+          matrix:
+            parameters:
+              ruby_version: ["3.1", "2.7"]
+              elasticsearch_gem_version: ["~> 7", "~> 5"]
+      - test:
+          name: "test with elasticsearch v5
+            and gem ~> 5
+            and ruby v<< matrix.ruby_version >>"
+          elasticsearch_version: "5.6-alpine"
+          elasticsearch_gem_version: "~> 5"
+          matrix:
+            parameters:
+              ruby_version: ["3.1", "2.7"]
