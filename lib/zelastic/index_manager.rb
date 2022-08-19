@@ -16,12 +16,12 @@ module Zelastic
       client.indices.put_alias(index: index_name, name: config.write_alias)
     end
 
-    def populate_index(unique_name = nil, batch_size: 3000)
+    def populate_index(unique_name = nil, batch_size: 3000, refresh: false)
       index_name = index_name_from_unique(unique_name)
 
       config.data_source.find_in_batches(batch_size: batch_size).with_index do |batch, i|
         logger.info(populate_index_log(batch_size: batch_size, batch_number: i + 1))
-        indexer.index_batch(batch, client: client, index_name: index_name)
+        indexer.index_batch(batch, client: client, index_name: index_name, refresh: refresh)
       end
     end
 
@@ -116,18 +116,11 @@ module Zelastic
                  else
                    'First index'
                  end
-      "ES: (#{progress}) Indexing #{config.type} records"
+      "ES: (#{progress}) Indexing records"
     end
 
     def current_index_size
-      @current_index_size ||= client.count(**count_params)['count']
-    end
-
-    def count_params
-      {
-        index: config.read_alias,
-        type: config.type? ? config.type : nil
-      }.compact
+      @current_index_size ||= client.count(index: config.read_alias)['count']
     end
 
     def indexed_percent(batch_size, batch_number)

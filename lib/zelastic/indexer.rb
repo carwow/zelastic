@@ -43,10 +43,7 @@ module Zelastic
 
       execute_bulk do |index_name|
         ids.map do |id|
-          delete_params = { _index: index_name, _id: id }
-          delete_params[:_type] = config.type if config.type?
-
-          { delete: delete_params }
+          { delete: { _index: index_name, _id: id } }
         end
       end
     end
@@ -76,19 +73,14 @@ module Zelastic
     end
 
     def index_command(index:, version:, record:)
-      version_params =
-        if config.type?
-          { _version: version, _version_type: :external, _type: config.type }
-        else
-          { version: version, version_type: :external }
-        end
-
       {
         index: {
           _index: index,
           _id: record.id,
-          data: config.index_data(record)
-        }.merge(version_params)
+          data: config.index_data(record),
+          version: version,
+          version_type: :external
+        }
       }
     end
 
@@ -123,16 +115,11 @@ module Zelastic
     end
 
     def ignorable_error?(error)
-      # rubocop:disable Layout/LineLength
-      regexp =
-        if config.type?
-          /^\[#{config.type}\]\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/
-        else
-          /^\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/
-        end
-      # rubocop:enable Layout/LineLength
       error['type'] == 'version_conflict_engine_exception' &&
-        error['reason'] =~ regexp
+        error['reason'] =~ VERSION_CONFLICT_ERROR_REGEXP
     end
+
+    VERSION_CONFLICT_ERROR_REGEXP =
+      /^\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/.freeze
   end
 end
