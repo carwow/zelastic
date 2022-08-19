@@ -8,3 +8,6 @@ inherit_mode:
 
 Metrics:
   Enabled: false
+
+Gemspec/RequireMFA:
+  Enabled: false
