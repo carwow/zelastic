@@ -2,8 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog],
+and this project adheres to [Semantic Versioning].
+
+[Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[Semantic Versioning]: https://semver.org/spec/v2.0.0.html
 
 ## How do I make a good changelog?
 
@@ -26,9 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
-## [Unreleased]
+## [Unreleased] - XXXX-XX-XX
 
-## Unreleased: [1.0.0] - 2022-08-XX
+## [0.8.0] - 2022-08-19
 ### Added
 - Support for Ruby 3 (and keep support for 2.7).
 - Support for Elasticsearch v8 (and keep support for v7).
@@ -40,5 +43,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drop support for Ruby 2.6.
 - Drop support for Elasticsearch v5 and v6.
 
-[Unreleased]: https://github.com/carwow/zelastic/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/carwow/zelastic/releases/tag/v1.0.0
+[Unreleased]: https://github.com/carwow/zelastic/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/carwow/zelastic/releases/tag/v0.8.0
