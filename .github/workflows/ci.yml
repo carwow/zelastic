@@ -8,24 +8,16 @@ on:
 
 jobs:
   test:
-    name: Ruby ${{ matrix.ruby }} / ES ${{ matrix.elasticsearch }} / Gem ${{ matrix.elasticsearch_gem }}
+    name: ES ${{ matrix.elasticsearch }} / Gem ${{ matrix.elasticsearch_gem }}
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
+        elasticsearch: ["8.3.3"]
+        elasticsearch_gem: ["~> 8", "~> 7"]
         include:
-          # Elasticsearch 8 with gem ~> 8
-          - ruby: "3.4"
-            elasticsearch: "8.3.3"
-            elasticsearch_gem: "~> 8"
-          # Elasticsearch 8 with gem ~> 7
-          - ruby: "3.4"
-            elasticsearch: "8.3.3"
-            elasticsearch_gem: "~> 7"
-          # Elasticsearch 7 with gem ~> 7
-          - ruby: "3.4"
-            elasticsearch: "7.17.5"
+          - elasticsearch: "7.17.5"
             elasticsearch_gem: "~> 7"
 
     services:
@@ -36,11 +28,7 @@ jobs:
           xpack.security.enabled: "false"
         ports:
           - 9200:9200
-        options: >-
-          --health-cmd "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+        options: --health-cmd "curl -s http://localhost:9200" --health-interval 5s --health-timeout 3s --health-retries 20
 
     env:
       ELASTICSEARCH_GEM_VERSION: ${{ matrix.elasticsearch_gem }}
@@ -48,22 +36,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Ruby ${{ matrix.ruby }}
-        uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ${{ matrix.ruby }}
+          ruby-version: "3.4"
           bundler-cache: true
 
-      - name: Run Rubocop
-        run: bin/rubocop
-
-      - name: Wait for Elasticsearch
-        run: |
-          until curl -s http://localhost:9200/_cluster/health | grep -q '"status":"green"\|"status":"yellow"'; do
-            echo "Waiting for Elasticsearch..."
-            sleep 5
-          done
-          echo "Elasticsearch is ready!"
-
-      - name: Run tests
-        run: bin/rspec
+      - run: bin/rubocop
+      - run: bin/rspec
