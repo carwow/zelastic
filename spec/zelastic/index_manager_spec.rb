@@ -105,4 +105,3 @@ RSpec.describe Zelastic::IndexManager do
     end
   end
 end
-

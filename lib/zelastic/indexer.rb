@@ -13,6 +13,10 @@ module Zelastic
 
     extend Forwardable
 
+    VERSION_CONFLICT_ERROR_REGEXP =
+      /^\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/
+    private_constant :VERSION_CONFLICT_ERROR_REGEXP
+
     def initialize(config)
       @config = config
     end
@@ -118,8 +122,5 @@ module Zelastic
       error['type'] == 'version_conflict_engine_exception' &&
         error['reason'] =~ VERSION_CONFLICT_ERROR_REGEXP
     end
-
-    VERSION_CONFLICT_ERROR_REGEXP =
-      /^\[\d+\]: version conflict, current version \[\d+\] is higher or equal to the one provided \[\d+\]$/.freeze
   end
 end

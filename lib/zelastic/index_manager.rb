@@ -95,11 +95,12 @@ module Zelastic
     def reindex_from_local(source_index:, dest_index:, wait_for_completion: false)
       logger.info("Reindexing from #{source_index} to #{dest_index}")
       reindex(source: { index: source_index }, dest_index: dest_index,
-              wait_for_completion: wait_for_completion)
+        wait_for_completion: wait_for_completion
+      )
     end
 
     def reindex_from_remote(source_host:, source_index:, dest_index:,
-                            username: nil, password: nil, wait_for_completion: false)
+      username: nil, password: nil, wait_for_completion: false)
       logger.info("Reindexing from remote #{source_host}/#{source_index} to #{dest_index}")
 
       remote = { host: source_host }
@@ -107,7 +108,8 @@ module Zelastic
       remote[:password] = password if password
 
       reindex(source: { remote: remote, index: source_index }, dest_index: dest_index,
-              wait_for_completion: wait_for_completion)
+        wait_for_completion: wait_for_completion
+      )
     end
 
     def current_read_index
