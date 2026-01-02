@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: ES ${{ matrix.elasticsearch }} / Gem ${{ matrix.elasticsearch_gem }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        elasticsearch: ["8.3.3"]
+        elasticsearch_gem: ["~> 8", "~> 7"]
+        include:
+          - elasticsearch: "7.17.5"
+            elasticsearch_gem: "~> 7"
+
+    services:
+      elasticsearch:
+        image: elasticsearch:${{ matrix.elasticsearch }}
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: "false"
+        ports:
+          - 9200:9200
+        options: --health-cmd "curl -s http://localhost:9200" --health-interval 5s --health-timeout 3s --health-retries 20
+
+    env:
+      ELASTICSEARCH_GEM_VERSION: ${{ matrix.elasticsearch_gem }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - run: bin/rubocop
+      - run: bin/rspec

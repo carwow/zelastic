@@ -102,6 +102,45 @@ The `client` keyword argument to `Zelastic::IndexManager.new` is optional. It de
 passed to `Zelastic::Config.new`, if one client is passed, or the first client in the array, if an
 array is passed to `Zelastic::Config.new`.
 
+### Reindexing using Elasticsearch's Reindex API
+
+For large indices, you can use Elasticsearch's native reindex API instead of `populate_index`:
+
+```ruby
+index_manager = Zelastic::IndexManager.new(MyModelIndex)
+source_index = index_manager.current_read_index
+dest_index = index_manager.current_write_index  # or any target index name
+index_manager.reindex(source_index: source_index, dest_index: dest_index)
+```
+
+### Reindexing from a remote Elasticsearch instance
+
+If you have multiple Elasticsearch instances (e.g., primary and secondary), you can copy data
+from one to another using the `reindex_from_remote` method:
+
+```ruby
+# On the destination ES instance
+secondary_client = Elasticsearch::Client.new(url: ENV['SECONDARY_ELASTICSEARCH_URL'])
+index_manager = Zelastic::IndexManager.new(MyModelIndex, client: secondary_client)
+
+# Get the source index name from the primary instance
+primary_client = Elasticsearch::Client.new(url: ENV['ELASTICSEARCH_URL'])
+source_index = primary_client.indices.get_alias(name: MyModelIndex.read_alias).keys.first
+
+dest_index = index_manager.current_write_index
+index_manager.reindex_from_remote(
+  source_host: ENV['ELASTICSEARCH_URL'],
+  source_index: source_index,
+  dest_index: dest_index,
+  username: ENV['ELASTICSEARCH_USERNAME'],  # optional
+  password: ENV['ELASTICSEARCH_PASSWORD'],  # optional
+  wait_for_completion: false                # runs asynchronously by default
+)
+```
+
+Note: For remote reindexing to work, the destination Elasticsearch cluster must have the source
+host configured in `reindex.remote.whitelist` in `elasticsearch.yml`.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

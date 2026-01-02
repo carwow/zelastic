@@ -92,11 +92,49 @@ module Zelastic
       client.indices.delete(index: indices_to_delete)
     end
 
+    def reindex_from_local(source_index:, dest_index:, wait_for_completion: false)
+      logger.info("Reindexing from #{source_index} to #{dest_index}")
+      reindex(source: { index: source_index }, dest_index: dest_index,
+        wait_for_completion: wait_for_completion
+      )
+    end
+
+    def reindex_from_remote(source_host:, source_index:, dest_index:,
+      username: nil, password: nil, wait_for_completion: false)
+      logger.info("Reindexing from remote #{source_host}/#{source_index} to #{dest_index}")
+
+      remote = { host: source_host }
+      remote[:username] = username if username
+      remote[:password] = password if password
+
+      reindex(source: { remote: remote, index: source_index }, dest_index: dest_index,
+        wait_for_completion: wait_for_completion
+      )
+    end
+
+    def current_read_index
+      client.indices.get_alias(name: config.read_alias).keys.first
+    end
+
+    def current_write_index
+      client.indices.get_alias(name: config.write_alias).keys.first
+    end
+
     private
 
     attr_reader :config, :client
 
     def_delegators :config, :logger
+
+    def reindex(source:, dest_index:, wait_for_completion:)
+      client.reindex(
+        body: {
+          source: source,
+          dest: { index: dest_index }
+        },
+        wait_for_completion: wait_for_completion
+      )
+    end
 
     def indexer
       @indexer ||= Indexer.new(config)
