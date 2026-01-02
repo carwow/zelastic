@@ -35,7 +35,7 @@ workflows:
           elasticsearch_version: "8.3.3"
           matrix:
             parameters:
-              ruby_version: ["3.1", "2.7"]
+              ruby_version: ["3.4", "3.5", "4.0"]
               elasticsearch_gem_version: ["~> 8", "~> 7"]
       - test:
           name: "test with elasticsearch v7
@@ -44,5 +44,5 @@ workflows:
           elasticsearch_version: "7.17.5"
           matrix:
             parameters:
-              ruby_version: ["3.1", "2.7"]
+              ruby_version: ["3.4", "3.5", "4.0"]
               elasticsearch_gem_version: ["~> 7"]
