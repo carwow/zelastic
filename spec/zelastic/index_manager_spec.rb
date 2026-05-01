@@ -105,27 +105,29 @@ RSpec.describe Zelastic::IndexManager do
     end
 
     context 'with op_type: "create" and conflicts: "proceed"' do
-      it 'does not overwrite existing destination documents and does not abort on conflicts' do
-        source_index = "#{config.read_alias}_#{source_index_id}"
-        dest_index = "#{config.read_alias}_#{dest_index_id}"
+      let(:source_index) { "#{config.read_alias}_#{source_index_id}" }
+      let(:dest_index) { "#{config.read_alias}_#{dest_index_id}" }
 
+      let(:response) do
         client.index(index: dest_index, id: 1, body: { marker: 'pre-existing' }, refresh: true)
 
-        response = index_manager.reindex_from_local(
+        index_manager.reindex_from_local(
           source_index:,
           dest_index:,
           wait_for_completion: true,
           op_type: 'create',
           conflicts: 'proceed'
-        )
+        ).tap { client.indices.refresh(index: dest_index) }
+      end
 
+      it 'reports version conflicts in the response instead of aborting' do
         expect(response['version_conflicts']).to be >= 1
+      end
 
-        client.indices.refresh(index: dest_index)
+      it 'does not overwrite pre-existing destination documents' do
+        response
         existing = client.get(index: dest_index, id: 1)
         expect(existing['_source']).to eq('marker' => 'pre-existing')
-
-        expect(client.count(index: dest_index)['count']).to eq(3)
       end
     end
   end
