@@ -19,9 +19,9 @@ module Zelastic
     def populate_index(unique_name = nil, batch_size: 3000, refresh: false)
       index_name = index_name_from_unique(unique_name)
 
-      config.data_source.find_in_batches(batch_size: batch_size).with_index do |batch, i|
-        logger.info(populate_index_log(batch_size: batch_size, batch_number: i + 1))
-        indexer.index_batch(batch, client: client, index_name: index_name, refresh: refresh)
+      config.data_source.find_in_batches(batch_size:).with_index do |batch, i|
+        logger.info(populate_index_log(batch_size:, batch_number: i + 1))
+        indexer.index_batch(batch, client:, index_name:, refresh:)
       end
     end
 
@@ -64,9 +64,9 @@ module Zelastic
                  )
 
       actions = other_write_indices.map do |index|
-        { remove: { index: index, alias: config.write_alias } }
+        { remove: { index:, alias: config.write_alias } }
       end
-      client.indices.update_aliases(body: { actions: actions })
+      client.indices.update_aliases(body: { actions: })
     end
 
     def cleanup_old_indices
@@ -95,23 +95,23 @@ module Zelastic
     def reindex_from_local(source_index:, dest_index:, wait_for_completion: false, op_type: nil, conflicts: nil)
       logger.info("Reindexing from #{source_index} to #{dest_index}")
       reindex(
-        source: { index: source_index }, dest_index: dest_index,
-        wait_for_completion: wait_for_completion,
-        op_type: op_type, 
-        conflicts: conflicts
+        source: { index: source_index }, dest_index:,
+        wait_for_completion:,
+        op_type:,
+        conflicts:
       )
     end
 
     def reindex_from_remote(
-        source_host:, 
-        source_index:, 
-        dest_index:,
-        username: nil, 
-        password: nil, 
-        wait_for_completion: false,
-        op_type: nil, 
-        conflicts: nil
-      )
+      source_host:,
+      source_index:,
+      dest_index:,
+      username: nil,
+      password: nil,
+      wait_for_completion: false,
+      op_type: nil,
+      conflicts: nil
+    )
       logger.info("Reindexing from remote #{source_host}/#{source_index} to #{dest_index}")
 
       remote = { host: source_host }
@@ -119,11 +119,11 @@ module Zelastic
       remote[:password] = password if password
 
       reindex(
-        source: { remote: remote, index: source_index }, 
-        dest_index: dest_index,
-        wait_for_completion: wait_for_completion,
-        op_type: op_type, 
-        conflicts: conflicts
+        source: { remote:, index: source_index },
+        dest_index:,
+        wait_for_completion:,
+        op_type:,
+        conflicts:
       )
     end
 
@@ -145,10 +145,10 @@ module Zelastic
       dest = { index: dest_index }
       dest[:op_type] = op_type if op_type
 
-      body = { source: source, dest: dest }
+      body = { source:, dest: }
       body[:conflicts] = conflicts if conflicts
 
-      client.reindex(body: body, wait_for_completion: wait_for_completion)
+      client.reindex(body:, wait_for_completion:)
     end
 
     def indexer

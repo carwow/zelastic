@@ -5,9 +5,9 @@ require 'spec_helper'
 RSpec.describe Zelastic::IndexManager do
   let(:config) do
     Zelastic::Config.new(
-      client: client,
-      data_source: data_source,
-      mapping: mapping,
+      client:,
+      data_source:,
+      mapping:,
       logger: Logger.new('log/test.log')
     ) { |_| {} }
   end
@@ -84,7 +84,7 @@ RSpec.describe Zelastic::IndexManager do
       source_index = "#{config.read_alias}_#{source_index_id}"
       dest_index = "#{config.read_alias}_#{dest_index_id}"
 
-      index_manager.reindex_from_local(source_index: source_index, dest_index: dest_index, wait_for_completion: true)
+      index_manager.reindex_from_local(source_index:, dest_index:, wait_for_completion: true)
 
       client.indices.refresh(index: dest_index)
       result = client.count(index: dest_index)
@@ -96,7 +96,7 @@ RSpec.describe Zelastic::IndexManager do
       source_index = "#{config.read_alias}_#{source_index_id}"
       dest_index = "#{config.read_alias}_#{dest_index_id}"
 
-      index_manager.reindex_from_local(source_index: source_index, dest_index: dest_index, wait_for_completion: true)
+      index_manager.reindex_from_local(source_index:, dest_index:, wait_for_completion: true)
 
       client.indices.refresh(index: dest_index)
       result = client.count(index: dest_index)
@@ -112,8 +112,8 @@ RSpec.describe Zelastic::IndexManager do
         client.index(index: dest_index, id: 1, body: { marker: 'pre-existing' }, refresh: true)
 
         response = index_manager.reindex_from_local(
-          source_index: source_index,
-          dest_index: dest_index,
+          source_index:,
+          dest_index:,
           wait_for_completion: true,
           op_type: 'create',
           conflicts: 'proceed'

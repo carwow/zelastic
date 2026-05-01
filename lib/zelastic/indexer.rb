@@ -23,9 +23,9 @@ module Zelastic
 
     def index_batch(batch, client: nil, index_name: nil, refresh: false)
       version = current_version
-      execute_bulk(client: client, index_name: index_name, refresh: refresh) do |index|
+      execute_bulk(client:, index_name:, refresh:) do |index|
         batch.map do |record|
-          index_command(index: index, version: version, record: record)
+          index_command(index:, version:, record:)
         end
       end
     end
@@ -33,8 +33,8 @@ module Zelastic
     def index_record(record, refresh: false)
       version = current_version
 
-      execute_bulk(refresh: refresh) do |index_name|
-        [index_command(index: index_name, version: version, record: record)]
+      execute_bulk(refresh:) do |index_name|
+        [index_command(index: index_name, version:, record:)]
       end
     end
 
@@ -56,7 +56,7 @@ module Zelastic
       logger.info('ES: Deleting batch records')
 
       config.clients.map do |client|
-        client.delete_by_query(index: config.write_alias, body: { query: query })
+        client.delete_by_query(index: config.write_alias, body: { query: })
       end
     end
 
@@ -82,7 +82,7 @@ module Zelastic
           _index: index,
           _id: record.id,
           data: config.index_data(record),
-          version: version,
+          version:,
           version_type: :external
         }
       }
@@ -96,7 +96,7 @@ module Zelastic
 
         commands = indices.flat_map(&block)
 
-        current_client.bulk(body: commands, refresh: refresh).tap do |result|
+        current_client.bulk(body: commands, refresh:).tap do |result|
           check_errors!(result)
         end
       end

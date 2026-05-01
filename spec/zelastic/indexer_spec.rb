@@ -5,9 +5,9 @@ require 'spec_helper'
 RSpec.describe Zelastic::Indexer do
   let(:config) do
     Zelastic::Config.new(
-      client: client,
-      data_source: data_source,
-      mapping: mapping,
+      client:,
+      data_source:,
+      mapping:,
       logger: Logger.new('log/test.log')
     ) { |_| {} }
   end
