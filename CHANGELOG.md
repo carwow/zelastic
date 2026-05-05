@@ -31,6 +31,13 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased] - XXXX-XX-XX
 
+## [0.9.1]
+### Added
+- `op_type` and `conflicts` kwargs on `IndexManager#reindex_from_local` and `#reindex_from_remote`. Defaults to `nil`, 
+  which omits them from the request body and preserves Elasticsearch defaults. Pass `op_type: 'create'` and
+  `conflicts: 'proceed'` for safe concurrent backfills - this avoids overwriting fresher live writes at the destination, and 
+  logs conflicts instead of aborting.
+
 ## [0.8.0] - 2022-08-19
 ### Added
 - Support for Ruby 3 (and keep support for 2.7).

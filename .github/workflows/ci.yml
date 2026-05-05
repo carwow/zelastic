@@ -14,10 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        elasticsearch: ["8.3.3"]
+        elasticsearch: ["8.19.15"]
         elasticsearch_gem: ["~> 8", "~> 7"]
         include:
-          - elasticsearch: "7.17.5"
+          - elasticsearch: "7.17.28"
             elasticsearch_gem: "~> 7"
 
     services:

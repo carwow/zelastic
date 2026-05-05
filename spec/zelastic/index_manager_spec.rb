@@ -5,9 +5,9 @@ require 'spec_helper'
 RSpec.describe Zelastic::IndexManager do
   let(:config) do
     Zelastic::Config.new(
-      client: client,
-      data_source: data_source,
-      mapping: mapping,
+      client:,
+      data_source:,
+      mapping:,
       logger: Logger.new('log/test.log')
     ) { |_| {} }
   end
@@ -84,7 +84,7 @@ RSpec.describe Zelastic::IndexManager do
       source_index = "#{config.read_alias}_#{source_index_id}"
       dest_index = "#{config.read_alias}_#{dest_index_id}"
 
-      index_manager.reindex_from_local(source_index: source_index, dest_index: dest_index, wait_for_completion: true)
+      index_manager.reindex_from_local(source_index:, dest_index:, wait_for_completion: true)
 
       client.indices.refresh(index: dest_index)
       result = client.count(index: dest_index)
@@ -96,12 +96,39 @@ RSpec.describe Zelastic::IndexManager do
       source_index = "#{config.read_alias}_#{source_index_id}"
       dest_index = "#{config.read_alias}_#{dest_index_id}"
 
-      index_manager.reindex_from_local(source_index: source_index, dest_index: dest_index, wait_for_completion: true)
+      index_manager.reindex_from_local(source_index:, dest_index:, wait_for_completion: true)
 
       client.indices.refresh(index: dest_index)
       result = client.count(index: dest_index)
 
       expect(result['count']).to eq(3)
+    end
+
+    context 'with op_type: "create" and conflicts: "proceed"' do
+      let(:source_index) { "#{config.read_alias}_#{source_index_id}" }
+      let(:dest_index) { "#{config.read_alias}_#{dest_index_id}" }
+
+      let(:response) do
+        client.index(index: dest_index, id: 1, body: { marker: 'pre-existing' }, refresh: true)
+
+        index_manager.reindex_from_local(
+          source_index:,
+          dest_index:,
+          wait_for_completion: true,
+          op_type: 'create',
+          conflicts: 'proceed'
+        ).tap { client.indices.refresh(index: dest_index) }
+      end
+
+      it 'reports version conflicts in the response instead of aborting' do
+        expect(response['version_conflicts']).to be >= 1
+      end
+
+      it 'does not overwrite pre-existing destination documents' do
+        response
+        existing = client.get(index: dest_index, id: 1)
+        expect(existing['_source']).to eq('marker' => 'pre-existing')
+      end
     end
   end
 end
